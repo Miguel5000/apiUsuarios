@@ -5,20 +5,25 @@
  */
 package co.edu.ucundinamarca.logica;
 
-import co.edu.ucundinamarca.db.UsuarioDB;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 /**
- *
- * @author Miguel
+ * Clase que permite crear un archivo a partir de un objeto, y recuperar dicho objeto
+ * @author Miguel Ángel Manrique Téllez
+ * @since 1.0.0
+ * @version 1.0.0
  */
 public class ArchivosUtilidad {
  
+    /**
+     * Permite crear un archivo que posea la información del objeto
+     * @param usuarios es el objeto a guardar
+     * @param direccion es la dirección del archivo a crear
+     */
     public static void crearArchivo(Object usuarios, String direccion){
     
         ObjectOutputStream objStream = null;
@@ -36,6 +41,11 @@ public class ArchivosUtilidad {
     
     }
     
+    /**
+     * Permite obtener el objeto almacenado en un archivo
+     * @param direccion es la dirección del archivo que posee el objeto
+     * @return objeto
+     */
     public static Object obtenerObjeto(String direccion){
     
         ObjectInputStream objStream = null;
