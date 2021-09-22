@@ -11,8 +11,6 @@ import co.edu.ucundinamarca.logica.excepciones.CreacionException;
 import co.edu.ucundinamarca.logica.excepciones.EdicionException;
 import co.edu.ucundinamarca.logica.excepciones.EliminacionException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
@@ -66,7 +64,18 @@ public class UsuarioController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad){
         
-        UsuarioDB usuario = UsuarioLogica.obtenerUsuarioLogica().obtener(documentoIdentidad);
+        UsuarioDB usuario = null;
+        
+        try{
+        
+            usuario = UsuarioLogica.obtenerUsuarioLogica().obtener(documentoIdentidad);
+        
+        }catch(NumberFormatException ex){
+        
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        
+        }
+        
         
         if(usuario == null) return Response.status(Response.Status.NO_CONTENT).build();
         

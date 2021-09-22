@@ -75,9 +75,19 @@ public class UsuarioLogica {
      * @param documentoIdentidad es el documento de identidad del usuario a obtener
      * @return usuario
      */
-    public UsuarioDB obtener(String documentoIdentidad){
+    public UsuarioDB obtener(String documentoIdentidad) throws NumberFormatException{
         
         UsuarioDB usuarioAObtener = null;
+        
+        try{
+        
+            int conversion = Integer.parseInt(documentoIdentidad);
+        
+        }catch(NumberFormatException ex){
+        
+            throw new NumberFormatException("El documento de identidad debe ser numérico");
+            
+        }
         
         for(UsuarioDB usuario: usuarios){
         
