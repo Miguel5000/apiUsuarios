@@ -7,14 +7,25 @@ package co.edu.ucundinamarca.apiusuarios;
 
 import co.edu.ucundinamarca.db.UsuarioDB;
 import co.edu.ucundinamarca.logica.UsuarioLogica;
+import co.edu.ucundinamarca.logica.excepciones.CreacionException;
+import co.edu.ucundinamarca.logica.excepciones.EdicionException;
+import co.edu.ucundinamarca.logica.excepciones.EliminacionException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Clase que posee los servicios de la API encargados de administrar a los usuarios
@@ -31,10 +42,16 @@ public class UsuarioController {
      * @return usuarios
      */
     @GET
-    @Path("/obtenerUsuarios")
-    public List<UsuarioDB> obtenerUsuarios(){
+    @Path("/obtenerLista")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerLista(){
         
-        return UsuarioLogica.obtenerUsuarioLogica().obtenerUsuarios();
+        List<UsuarioDB> usuarios = UsuarioLogica.obtenerUsuarioLogica().obtenerLista();
+        
+        if(usuarios.isEmpty()) return Response.status(Response.Status.NO_CONTENT).build();
+                
+        return Response.status(Response.Status.OK).entity(usuarios).build();
         
     }
     
@@ -45,9 +62,15 @@ public class UsuarioController {
      */
     @GET
     @Path("/obtener/{documentoIdentidad}")
-    public UsuarioDB obtener(@PathParam("documentoIdentidad") String documentoIdentidad){
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad){
         
-        return UsuarioLogica.obtenerUsuarioLogica().obtener(documentoIdentidad);
+        UsuarioDB usuario = UsuarioLogica.obtenerUsuarioLogica().obtener(documentoIdentidad);
+        
+        if(usuario == null) return Response.status(Response.Status.NO_CONTENT).build();
+        
+        return Response.status(Response.Status.OK).entity(usuario).build();
         
     }
     
@@ -57,9 +80,16 @@ public class UsuarioController {
      */
     @PUT
     @Path("/editar")
-    public void editar(UsuarioDB usuario){
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response editar(@Valid UsuarioDB usuario){
         
-        UsuarioLogica.obtenerUsuarioLogica().editar(usuario);
+        try {
+            UsuarioLogica.obtenerUsuarioLogica().editar(usuario);
+            return Response.status(Response.Status.OK).build();
+        } catch (EdicionException ex) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         
     }
     
@@ -69,9 +99,16 @@ public class UsuarioController {
      */
     @POST
     @Path("/guardar")
-    public void guardar(UsuarioDB usuario){
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response guardar(@Valid UsuarioDB usuario){
        
-        UsuarioLogica.obtenerUsuarioLogica().guardar(usuario);
+        try {
+            UsuarioLogica.obtenerUsuarioLogica().guardar(usuario);
+            return Response.status(Response.Status.CREATED).build();
+        } catch (CreacionException ex) {
+            return Response.status(Response.Status.CONFLICT).build();
+        }
         
     }
     
@@ -81,9 +118,16 @@ public class UsuarioController {
      */
     @DELETE
     @Path("/eliminar/{documentoIdentidad}")
-    public void eliminar(@PathParam("documentoIdentidad") String documentoIdentidad){
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response eliminar(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad){
         
-        UsuarioLogica.obtenerUsuarioLogica().eliminar(documentoIdentidad);
+        try {
+            UsuarioLogica.obtenerUsuarioLogica().eliminar(documentoIdentidad);
+            return Response.status(Response.Status.OK).build();
+        } catch (EliminacionException ex) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         
     }
     

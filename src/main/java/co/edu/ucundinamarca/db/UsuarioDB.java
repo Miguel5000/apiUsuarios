@@ -6,7 +6,10 @@
 package co.edu.ucundinamarca.db;
 
 import java.io.Serializable;
-
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 /**
  * Clase que posee los datos del usuario que se recibe y retorna, y permita aplicar operaciones sobre él
  * @author Miguel Ángel Manrique Téllez
@@ -18,21 +21,30 @@ public class UsuarioDB implements Serializable{
     /**
      * Es el nombre del usuario
      */
+    @NotNull
+    @Size(min=1)
     private String nombre;
     
     /**
      * Es el apellido del usuario
      */
+    @NotNull
+    @Size(min=1)
     private String apellido;
     
     /**
      * Es el número de documento de identidad del usuario
      */
+    @NotNull
+    @Size(min=8, max=10)
     private String documentoIdentidad;
     
     /**
      * Es la edad del usuario
      */
+    @NotNull
+    @Min(10)
+    @Max(130)
     private int edad;
 
     /**

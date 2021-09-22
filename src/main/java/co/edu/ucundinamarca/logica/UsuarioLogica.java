@@ -6,6 +6,9 @@
 package co.edu.ucundinamarca.logica;
 
 import co.edu.ucundinamarca.db.UsuarioDB;
+import co.edu.ucundinamarca.logica.excepciones.CreacionException;
+import co.edu.ucundinamarca.logica.excepciones.EdicionException;
+import co.edu.ucundinamarca.logica.excepciones.EliminacionException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +34,7 @@ public class UsuarioLogica {
      * Es el objeto que se brinda para manejar la lógica de los usuarios
      */
     private static UsuarioLogica usuarioLogica;
+   
     
     /**
      * Es el constructor de la clase
@@ -58,7 +62,7 @@ public class UsuarioLogica {
      * Permite obtener a todos los usuarios
      * @return usuarios
      */
-    public List<UsuarioDB> obtenerUsuarios(){
+    public List<UsuarioDB> obtenerLista(){
         
         this.usuarios = (ArrayList)ArchivosUtilidad.obtenerObjeto(DIRECTORIO);
         return usuarios;
@@ -73,14 +77,18 @@ public class UsuarioLogica {
      */
     public UsuarioDB obtener(String documentoIdentidad){
         
+        UsuarioDB usuarioAObtener = null;
+        
         for(UsuarioDB usuario: usuarios){
         
             if(usuario.getDocumentoIdentidad().equals(documentoIdentidad))
-                return usuario;
+                usuarioAObtener = usuario;
         
+            break;
+            
         }
         
-        return null;
+        return usuarioAObtener;
         
     }
     
@@ -88,19 +96,24 @@ public class UsuarioLogica {
      * Permite editar la información de un usuario
      * @param usuario es el objeto que posee el documento del usuario a editar, y los nuevos datos de ese usuario
      */
-    public void editar(UsuarioDB usuario){
+    public void editar(UsuarioDB usuario) throws EdicionException{
+        
+        UsuarioDB usuarioAEditar = null;
         
         for(UsuarioDB usuarioIteracion: usuarios){
         
             if(usuarioIteracion.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad())){
                 
-                usuarios.set(usuarios.indexOf(usuarioIteracion), usuario);
+                usuarioAEditar = usuarioIteracion;
                 break;
-                
+           
             }
         
         }
         
+        if(usuarioAEditar == null) throw new EdicionException("No se ha encontrado el usuario que se desea editar.");
+            
+        usuarios.set(usuarios.indexOf(usuarioAEditar), usuario);
         this.actualizarLista();
         
     }
@@ -109,14 +122,16 @@ public class UsuarioLogica {
      * Permite insertar un nuevo usuario
      * @param usuario es el objeto que posee los datos del usuario a insertar
      */
-    public void guardar(UsuarioDB usuario){
+    public void guardar(UsuarioDB usuario) throws CreacionException{
         
-        if(this.verificarValidezUsuario(usuario)){
+        if(this.verificarExistenciaUsuario(usuario)){
         
-            usuarios.add(usuario);
-            this.actualizarLista();
+            throw new CreacionException("Ya existe un usuario con el número de identificación enviado");
             
         }
+        
+        usuarios.add(usuario);
+        this.actualizarLista();
         
     }
     
@@ -124,38 +139,24 @@ public class UsuarioLogica {
      * Permite eliminar a un usuario
      * @param documentoIdentidad es el documento de identidad del usuario a eliminar
      */
-    public void eliminar(String documentoIdentidad){
+    public void eliminar(String documentoIdentidad) throws EliminacionException{
+        
+        UsuarioDB usuarioAEliminar = null;
         
         for(UsuarioDB usuario: usuarios){
         
             if(usuario.getDocumentoIdentidad().equals(documentoIdentidad)){
-                usuarios.remove(usuario);
+                usuarioAEliminar = usuario;
                 break;
             }
         
         }
         
+        if(usuarioAEliminar == null) throw new EliminacionException("No se ha encontrado el usuario que se desea eliminar.");
+        
+        usuarios.remove(usuarioAEliminar);
         this.actualizarLista();
-        
-    }
-    
-    /**
-     * Permite verificar si la información del usuario a insertar es válida
-     * @param usuario es el objeto que posee la información del usuario a insertar
-     * @return respuesta
-     */
-    private boolean verificarValidezUsuario(UsuarioDB usuario){
-    
-        if(usuario.getNombre().isEmpty() || usuario.getNombre() == null ||
-            usuario.getApellido().isEmpty() || usuario.getApellido() == null ||
-            usuario.getDocumentoIdentidad().isEmpty() || usuario.getDocumentoIdentidad() == null)
-            return false;
-        
-        if(this.verificarExistenciaUsuario(usuario))
-            return false;
-        
-        return true;
-        
+
     }
     
     /**
