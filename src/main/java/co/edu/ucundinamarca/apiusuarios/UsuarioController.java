@@ -5,14 +5,17 @@
  */
 package co.edu.ucundinamarca.apiusuarios;
 
-import co.edu.ucundinamarca.db.UsuarioDB;
-import co.edu.ucundinamarca.logica.UsuarioLogica;
-import co.edu.ucundinamarca.logica.excepciones.CreacionException;
-import co.edu.ucundinamarca.logica.excepciones.EdicionException;
-import co.edu.ucundinamarca.logica.excepciones.EliminacionException;
+
+import co.edu.ucundinamarca.ejb.dao.IUsuarioDao;
+import co.edu.ucundinamarca.ejb.entity.Usuario;
+import co.edu.ucundinamarca.ejb.excepciones.CreacionException;
+import co.edu.ucundinamarca.ejb.excepciones.EdicionException;
+import co.edu.ucundinamarca.ejb.excepciones.EliminacionException;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -24,7 +27,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 /**
  * Clase que posee los servicios de la API encargados de administrar a los usuarios
  * @author Miguel Ángel Manrique Téllez
@@ -34,6 +36,10 @@ import javax.ws.rs.core.Response;
 @Stateless
 @Path("/usuarios")
 public class UsuarioController {
+    
+
+    @EJB
+    private IUsuarioDao service;
     
     /**
      * Permite obtener a todos los usuarios
@@ -45,7 +51,7 @@ public class UsuarioController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response obtenerLista(){
         
-        List<UsuarioDB> usuarios = UsuarioLogica.obtenerUsuarioLogica().obtenerLista();
+        List<Usuario> usuarios = this.service.listarTodos();
         
         if(usuarios.isEmpty()) return Response.status(Response.Status.NO_CONTENT).build();
                 
@@ -62,20 +68,9 @@ public class UsuarioController {
     @Path("/obtener/{documentoIdentidad}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad){
+    public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) @Pattern(regexp="^[0-9]*$") String documentoIdentidad){
         
-        UsuarioDB usuario = null;
-        
-        try{
-        
-            usuario = UsuarioLogica.obtenerUsuarioLogica().obtener(documentoIdentidad);
-        
-        }catch(NumberFormatException ex){
-        
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        
-        }
-        
+        Usuario usuario = this.service.get(documentoIdentidad);
         
         if(usuario == null) return Response.status(Response.Status.NO_CONTENT).build();
         
@@ -91,14 +86,10 @@ public class UsuarioController {
     @Path("/editar")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response editar(@Valid UsuarioDB usuario){
+    public Response editar(@Valid Usuario usuario) throws EdicionException{
         
-        try {
-            UsuarioLogica.obtenerUsuarioLogica().editar(usuario);
-            return Response.status(Response.Status.OK).build();
-        } catch (EdicionException ex) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+        this.service.editar(usuario);
+        return Response.status(Response.Status.OK).build();
         
     }
     
@@ -110,14 +101,10 @@ public class UsuarioController {
     @Path("/guardar")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response guardar(@Valid UsuarioDB usuario){
-       
-        try {
-            UsuarioLogica.obtenerUsuarioLogica().guardar(usuario);
-            return Response.status(Response.Status.CREATED).build();
-        } catch (CreacionException ex) {
-            return Response.status(Response.Status.CONFLICT).build();
-        }
+    public Response guardar(@Valid Usuario usuario) throws CreacionException{
+
+        this.service.guardar(usuario);
+        return Response.status(Response.Status.CREATED).build();
         
     }
     
@@ -129,15 +116,12 @@ public class UsuarioController {
     @Path("/eliminar/{documentoIdentidad}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response eliminar(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad){
+    public Response eliminar(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad) throws EliminacionException{
         
-        try {
-            UsuarioLogica.obtenerUsuarioLogica().eliminar(documentoIdentidad);
-            return Response.status(Response.Status.OK).build();
-        } catch (EliminacionException ex) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        
+        this.service.eliminar(documentoIdentidad);
+        return Response.status(Response.Status.NO_CONTENT).build();
+
     }
     
 }
+
