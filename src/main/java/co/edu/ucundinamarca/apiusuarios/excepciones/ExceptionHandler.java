@@ -6,9 +6,13 @@
 package co.edu.ucundinamarca.apiusuarios.excepciones;
 
 import co.edu.ucundinamarca.ejb.excepciones.CreacionException;
+import co.edu.ucundinamarca.ejb.excepciones.EdicionConflictoException;
 import co.edu.ucundinamarca.ejb.excepciones.EdicionException;
 import co.edu.ucundinamarca.ejb.excepciones.EliminacionException;
+import co.edu.ucundinamarca.ejb.excepciones.ObtencionException;
+import javax.ejb.EJBTransactionRolledbackException;
 import javax.ws.rs.NotAllowedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -45,12 +49,14 @@ public class ExceptionHandler implements ExceptionMapper<Exception>{
         String enlace = uriInfo.getPath();
         
         Status estado = Response.Status.INTERNAL_SERVER_ERROR;
+        
+        String mensaje = exception.getMessage();
 
-        if(exception instanceof CreacionException){
+        if(exception instanceof CreacionException || exception instanceof EdicionConflictoException){
         
             estado = Response.Status.CONFLICT;
         
-        }if(exception instanceof EliminacionException || exception instanceof EdicionException){
+        }if(exception instanceof EliminacionException || exception instanceof EdicionException || exception instanceof ObtencionException || exception instanceof NotFoundException){
         
             estado = Response.Status.NOT_FOUND;
         
@@ -62,10 +68,15 @@ public class ExceptionHandler implements ExceptionMapper<Exception>{
         
             estado = Response.Status.UNSUPPORTED_MEDIA_TYPE;
             
+        }if(exception instanceof EJBTransactionRolledbackException){
+        
+            estado = Response.Status.BAD_REQUEST;
+            mensaje = "Error en base de datos";
+            
         }
         
-        wrapper = new ExceptionWrapper(Integer.toString(estado.getStatusCode()), estado.name(), exception.getMessage(), enlace);
-        return Response.status(Response.Status.CONFLICT).entity(wrapper).build(); 
+        wrapper = new ExceptionWrapper(Integer.toString(estado.getStatusCode()), estado.name(), mensaje, enlace);
+        return Response.status(estado).entity(wrapper).type(MediaType.APPLICATION_JSON).build(); 
 
     }
     

@@ -9,8 +9,10 @@ package co.edu.ucundinamarca.apiusuarios;
 import co.edu.ucundinamarca.ejb.dao.IUsuarioDao;
 import co.edu.ucundinamarca.ejb.entity.Usuario;
 import co.edu.ucundinamarca.ejb.excepciones.CreacionException;
+import co.edu.ucundinamarca.ejb.excepciones.EdicionConflictoException;
 import co.edu.ucundinamarca.ejb.excepciones.EdicionException;
 import co.edu.ucundinamarca.ejb.excepciones.EliminacionException;
+import co.edu.ucundinamarca.ejb.excepciones.ObtencionException;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -20,6 +22,7 @@ import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -68,12 +71,25 @@ public class UsuarioController {
     @Path("/obtener/{documentoIdentidad}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) @Pattern(regexp="^[0-9]*$") String documentoIdentidad){
+    public Response obtener(@PathParam("documentoIdentidad") @Size(min=8, max=10) @Pattern(regexp="^[0-9]*$") String documentoIdentidad) throws ObtencionException{
         
         Usuario usuario = this.service.get(documentoIdentidad);
+        return Response.status(Response.Status.OK).entity(usuario).build();
         
-        if(usuario == null) return Response.status(Response.Status.NO_CONTENT).build();
+    }
+    
+    /**
+     * Permite obtener al usuario según su id
+     * @param id es el id del usuario a obtener
+     * @return usuario
+     */
+    @GET
+    @Path("/obtenerPorId/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerPorId(@PathParam("id") int id) throws ObtencionException{
         
+        Usuario usuario = this.service.get(id);
         return Response.status(Response.Status.OK).entity(usuario).build();
         
     }
@@ -86,7 +102,7 @@ public class UsuarioController {
     @Path("/editar")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response editar(@Valid Usuario usuario) throws EdicionException{
+    public Response editar(@Valid Usuario usuario) throws EdicionException, EdicionConflictoException{
         
         this.service.editar(usuario);
         return Response.status(Response.Status.OK).build();
@@ -110,16 +126,33 @@ public class UsuarioController {
     
     /**
      * Permite eliminar a un usuario
-     * @param documentoIdentidad es el documento de identidad del usuario a eliminar
+     * @param id es el id del usuario a eliminar
      */
     @DELETE
-    @Path("/eliminar/{documentoIdentidad}")
+    @Path("/eliminar/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response eliminar(@PathParam("documentoIdentidad") @Size(min=8, max=10) String documentoIdentidad) throws EliminacionException{
+    public Response eliminar(@PathParam("id") int id) throws EliminacionException{
         
-        this.service.eliminar(documentoIdentidad);
-        return Response.status(Response.Status.NO_CONTENT).build();
+        
+        this.service.eliminar(id);
+        return Response.status(Response.Status.OK).build();
+
+    }
+    
+    /**
+     * Permite eliminar a un usuario
+     * @param id es el id del usuario a eliminar
+     */
+    @DELETE
+    @Path("/eliminarNativo/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response eliminarNativo(@PathParam("id") int id) throws EliminacionException{
+        
+        
+        this.service.eliminarNativo(id);
+        return Response.status(Response.Status.OK).build();
 
     }
     
